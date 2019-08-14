@@ -1,4 +1,4 @@
-# test
+# daily-test
 
 ## Project setup
 ```
