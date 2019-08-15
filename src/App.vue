@@ -299,6 +299,12 @@ export default {
         }
       } else {
         robotMotionFail();
+        robot.on('update', () => {
+          // 能量条
+          // let nowH = deltaH - (e.target.attr('y') - minH);
+          let nowH = deltaH - (robot.attr('y') - minH);
+          this.barPercent = (nowH / deltaH) * 100 + '%';
+        });
         async function robotMotionFail() {
           for (let i = 0; i < pathData.length; i++) {
             console.log(i);
