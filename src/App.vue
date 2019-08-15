@@ -35,10 +35,10 @@ export default {
     //   console.log('hh');
     //   // return false;
     // });
-    window.addEventListener('resize', () => {
-      const [w, h] = this.scene.viewport;
-      this.scene.resolution = [w, h];
-    });
+    // window.addEventListener('resize', () => {
+    //   const [w, h] = this.scene.viewport;
+    //   this.scene.resolution = [w, h];
+    // });
   },
   methods: {
     makeRandomNum() {
@@ -49,14 +49,11 @@ export default {
     async init() {
       // 画布初始化
       this.scene = new Scene('#hh', {
-        // 方案一
-        // viewport: ['auto', 'auto']
-        // 方案二
-        viewport: 'auto',
-        resolution: [1400, 600]
-        // stickMode: 'width',
-        // stickExtend: false
+        resolution: [1200, 650],
+        viewport: ['auto', 'auto']
       });
+      // const [WIDTH, HEIGHT] = this.scene.resolution;
+      // console.log(WIDTH, HEIGHT);
       await this.scene.preload(
         {
           id: 'img1',
@@ -65,6 +62,7 @@ export default {
         {
           id: 'img2',
           src: 'https://p2.ssl.qhimg.com/t01c18f4e677c09a87e.jpg'
+          // http://localhost:8080/static/man.jpg
         }
       );
       // 新建层级
@@ -82,16 +80,12 @@ export default {
       //   [1000, 500],
       //   [1300, 300]
       // ];
-      let oneData = [
-        [100, 300],
-        [500, 500],
-        [800, 200],
-        [1000, 500],
-        [1300, 300]
-      ];
-      oneData = oneData.map(item => {
-        return [item[0] + this.makeRandomNum(), item[1] + this.makeRandomNum()];
-      });
+      let oneData = [[100, 380], [250, 550], [650, 200], [900, 500]];
+      oneData = oneData.map(item => [
+        item[0] + this.makeRandomNum(),
+        item[1] + this.makeRandomNum()
+      ]);
+
       let h1 = Math.abs(oneData[1][1] - oneData[0][1]);
       let h2 = Math.abs(oneData[2][1] - oneData[1][1]);
       let failLenPer = h1 / h2;
@@ -100,6 +94,7 @@ export default {
       let minH = Math.min(...yArr);
       let maxH = Math.max(...yArr);
       let deltaH = maxH - minH;
+      oneData.push([1200, oneData[oneData.length - 1][1]]);
       let pathData = this.createOnePath(oneData);
       console.log('pathData：' + pathData);
 
@@ -140,6 +135,17 @@ export default {
       group.append(bg);
 
       let lineWidth = 10;
+      pathData.unshift(
+        `M${oneData[0][0]},100 L${oneData[0][0]},${oneData[0][1]}`
+      );
+      // pathData.push(
+      //   this.drawLine(
+      //     oneData[oneData.length - 1][0],
+      //     oneData[oneData.length - 1][1],
+      //     1200,
+      //     oneData[oneData.length - 1][1]
+      //   )
+      // );
       pathData.forEach((d, idx) => {
         let path = new Path();
         path.attr({
@@ -308,13 +314,13 @@ export default {
         async function robotMotionFail() {
           for (let i = 0; i < pathData.length; i++) {
             console.log(i);
-            if (i > 1) return;
+            if (i > 2) return;
             robot.attr({
               // anchor: [0.5, 1],
               offsetPath: pathData[i]
               // scale: 0.1
             });
-            if (i === 1) {
+            if (i === 2) {
               await robot.animate(
                 [{ offsetDistance: 0 }, { offsetDistance: h1 / h2 }],
                 {
@@ -364,7 +370,13 @@ export default {
           pathArr[i + 1][0],
           pathArr[i + 1][1]
         ];
-        let path = this.drawCurve(...point);
+        let path =
+          i === 0
+            ? this.drawQuadraticBezier(...point)
+            : i === pathArr.length - 1
+              ? this.drawLine(...point)
+              : this.drawCurve(...point);
+        console.log(i, path);
         pathData.push(path);
       }
       return pathData;
@@ -433,6 +445,9 @@ export default {
       let midX = (x1 + x2) / 2;
       return `M${x1},${y1} C${midX},${y1} ${midX},${y2} ${x2},${y2}`;
     },
+    drawQuadraticBezier(x1, y1, x2, y2) {
+      return `M${x1},${y1} Q${x1},${y2} ${x2},${y2}`;
+    },
     drawRightCircle(x1, y1, R) {
       return `M${x1},${y1} A${R} ${R}, 0, 0, 0, ${x1} ${y1 - 2 * R}`;
     },
@@ -464,8 +479,6 @@ export default {
 }
 #hh {
   width: 100%;
-  /* width: 1400px; */
-  /* height: 300px; */
   padding-bottom: 50%;
   border: 2px solid #000;
 }
