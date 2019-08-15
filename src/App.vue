@@ -14,7 +14,7 @@
 
 <script>
 import * as spritejs from 'spritejs';
-const { Scene, Sprite, Path } = spritejs;
+const { Scene, Sprite, Path, Group } = spritejs;
 
 export default {
   data() {
@@ -95,12 +95,49 @@ export default {
       let h1 = Math.abs(oneData[1][1] - oneData[0][1]);
       let h2 = Math.abs(oneData[2][1] - oneData[1][1]);
       let failLenPer = h1 / h2;
-      console.log(oneData, h1, h2, failLenPer);
+      console.log('pointData：' + oneData, h1, h2, failLenPer);
       let yArr = oneData.map(item => item[1]);
       let minH = Math.min(...yArr);
       let maxH = Math.max(...yArr);
       let deltaH = maxH - minH;
       let pathData = this.createOnePath(oneData);
+      console.log('pathData：' + pathData);
+
+      // 新建路径背景
+      let bgPathData =
+        pathData +
+        `L${oneData[oneData.length - 1][0]},
+          ${oneData[oneData.length - 1][1] + 300}` +
+        `L${oneData[0][0]}, ${oneData[oneData.length - 1][1] + 300}`;
+      console.log(bgPathData);
+      const group = new Group();
+      group.attr({
+        // pos: [oneData[0][0], oneData[0][1]],
+        // anchor: [0.5, 0.5],
+        clip: {
+          d: bgPathData.replace(/,M\d+,\d+/g, '')
+        }
+        // clip: {
+        //   d:
+        //     'M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4c0,9.4,9.5,11.9,16,21.2 c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z',
+        //   transform: { scale: 15 }
+        // }
+      });
+      this.layer.append(group);
+
+      const bg = new Sprite();
+      bg.attr({
+        // anchor: 0.5,
+        // border: [6, 'black'],
+        // pos: [100, 300],
+        size: [2000, 2000],
+        opacity: 0.6,
+        bgimage: {
+          id: 'img2',
+          display: 'repeat'
+        }
+      });
+      group.append(bg);
 
       let lineWidth = 10;
       pathData.forEach((d, idx) => {
