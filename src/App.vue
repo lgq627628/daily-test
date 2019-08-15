@@ -5,6 +5,9 @@
     <div class="bar">
       <div class="red" :style="`width: ${barPercent}`"></div>
     </div>
+    <button class="btn">点我开始</button>
+    <button class="btn" @click="pause">暂停</button>
+    <button class="btn" @click="goon">继续</button>
     <div id="hh"></div>
   </div>
 </template>
@@ -19,7 +22,8 @@ export default {
       scene: null,
       layer: null,
       barPercent: '100%',
-      maskVisible: false
+      maskVisible: false,
+      isSuccess: false
     };
   },
   mounted() {
@@ -31,6 +35,10 @@ export default {
     //   console.log('hh');
     //   // return false;
     // });
+    window.addEventListener('resize', () => {
+      const [w, h] = this.scene.viewport;
+      this.scene.resolution = [w, h];
+    });
   },
   methods: {
     makeRandomNum() {
@@ -41,14 +49,24 @@ export default {
     async init() {
       // 画布初始化
       this.scene = new Scene('#hh', {
-        resolution: [1500, 500],
-        stickMode: 'height',
-        stickExtend: false
+        // 方案一
+        // viewport: ['auto', 'auto']
+        // 方案二
+        viewport: 'auto',
+        resolution: [1400, 600]
+        // stickMode: 'width',
+        // stickExtend: false
       });
-      await this.scene.preload({
-        id: 'img1',
-        src: 'https://p5.ssl.qhimg.com/t01c33383c0e168c3c4.png'
-      });
+      await this.scene.preload(
+        {
+          id: 'img1',
+          src: 'https://p5.ssl.qhimg.com/t01c33383c0e168c3c4.png'
+        },
+        {
+          id: 'img2',
+          src: 'https://p2.ssl.qhimg.com/t01c18f4e677c09a87e.jpg'
+        }
+      );
       // 新建层级
       this.layer = this.scene.layer();
       this.layer.canvas.style.backgroundColor = '#9cd470';
@@ -57,16 +75,27 @@ export default {
     },
     gotoOne() {
       // 新建路径
+      // let oneData = [
+      //   [100, 100],
+      //   [500, 500],
+      //   [800, 200],
+      //   [1000, 500],
+      //   [1300, 300]
+      // ];
       let oneData = [
-        [100, 100],
-        [300, 400],
-        [450, 200],
-        [600, 400],
-        [800, 300]
+        [100, 300],
+        [500, 500],
+        [800, 200],
+        [1000, 500],
+        [1300, 300]
       ];
       oneData = oneData.map(item => {
         return [item[0] + this.makeRandomNum(), item[1] + this.makeRandomNum()];
       });
+      let h1 = Math.abs(oneData[1][1] - oneData[0][1]);
+      let h2 = Math.abs(oneData[2][1] - oneData[1][1]);
+      let failLenPer = h1 / h2;
+      console.log(oneData, h1, h2, failLenPer);
       let yArr = oneData.map(item => item[1]);
       let minH = Math.min(...yArr);
       let maxH = Math.max(...yArr);
@@ -74,15 +103,18 @@ export default {
       let pathData = this.createOnePath(oneData);
 
       let lineWidth = 10;
-      pathData.forEach(d => {
+      pathData.forEach((d, idx) => {
         let path = new Path();
         path.attr({
           path: d,
           strokeColor: '#bbccfa',
           lineWidth: lineWidth,
-          lineJoin: 'round',
-          textures: 'https://p5.ssl.qhimg.com/t01c33383c0e168c3c4.png'
+          lineJoin: 'round'
         });
+        console.log(
+          `第${idx + 1}段路径长度：` + path.getPathLength(),
+          '中点坐标：' + path.getPointAtLength(path.getPathLength() / 2)
+        );
         let path2 = path.cloneNode();
         path2.attr({ translate: [0, lineWidth], strokeColor: '#6083e5' });
         let path3 = path.cloneNode();
@@ -104,56 +136,181 @@ export default {
 
       // 新建人物
       const robot = new Sprite('img1');
+      robot.attr({
+        anchor: [0.5, 1],
+        scale: 0.1
+      });
       this.layer.append(robot);
 
-      robotMotion();
-      let hasHit = false;
-      robot.on('update', (a, b, c, d) => {
-        console.log(a, b, c, d);
-        // 能量条
-        // let nowH = deltaH - (e.target.attr('y') - minH);
-        let nowH = deltaH - (robot.attr('y') - minH);
-        this.barPercent = (nowH / deltaH) * 100 + '%';
-        // 碰撞检测
-        if (!hasHit && robot.OBBCollision(star)) {
-          hasHit = true;
-          // this.layer.timeline.playbackRate = -1;
-          // robot.animate([{ offsetDistance: 1 }, { offsetDistance: 0 }], {
-          //   playbackRate: -1,
-          //   duration: 3000,
-          //   fill: 'forwards'
-          // });
-          star.animate([{ y: oneData[2][1] - 100, opacity: 0 }], {
-            duration: 1000,
-            fill: 'forwards',
-            easing: 'ease-out'
+      const platform = new Sprite();
+      platform.attr({
+        anchor: [0.5, 0.5],
+        pos: [50, 500],
+        size: [100, 50],
+        bgcolor: '#c37'
+      });
+      this.layer.append(platform);
+
+      function draggable(sprite) {
+        if (sprite.isDraggable) return;
+
+        sprite.isDraggable = true;
+
+        let x0, y0, startPos;
+
+        function onMouseMove(evt) {
+          const dx = evt.x - x0,
+            dy = evt.y - y0;
+
+          // sprite.attr('pos', [startPos[0] + dx, startPos[1] + dy]);
+          sprite.attr('pos', [startPos[0], startPos[1] + dy]);
+          evt.stopDispatch();
+        }
+
+        sprite.on('mouseenter', evt => {
+          sprite.attr('border', { width: 6, color: 'blue' });
+        });
+        sprite.on('mouseleave', evt => {
+          sprite.attr('border', { width: 0 });
+        });
+
+        sprite
+          .on('mousedown', evt => {
+            x0 = evt.x;
+            y0 = evt.y;
+            startPos = sprite.attr('pos');
+            sprite.off('mousemove', onMouseMove);
+            sprite.setMouseCapture();
+            sprite.on('mousemove', onMouseMove);
+            evt.stopDispatch();
+          })
+          .on('mouseup', evt => {
+            sprite.off('mousemove', onMouseMove);
+            sprite.releaseMouseCapture();
           });
+
+        return sprite;
+      }
+      draggable(platform);
+      this.layer.on('mousemove', evt => {
+        if (evt.targetSprites.some(target => target.isDraggable)) {
+          this.scene.container.style.cursor = 'move';
+        } else {
+          this.scene.container.style.cursor = 'default';
         }
       });
-      async function robotMotion() {
-        for (let i = 0; i < pathData.length; i++) {
-          // if (hasHit) return;
-          robot.attr({
-            anchor: [0.5, 1],
-            offsetPath: pathData[i],
-            scale: 0.1
-          });
-          await robot.animate([{ offsetDistance: 0 }, { offsetDistance: 1 }], {
-            // playbackRate: 1,
-            duration: 3000,
-            fill: 'forwards',
-            easing:
-              i % 2 === 0
-                ? 'cubic-bezier(.45,.14,.92,.76)'
-                : 'cubic-bezier(.09,.24,.58,.9)'
-            // easing:
-            //   i % 2 === 0
-            //     ? 'cubic-bezier(.4,.1,1,1)'
-            //     : 'cubic-bezier(0,0,.55,.85)'
-            // easing: i % 2 === 0 ? 'ease-in' : 'cubic-bezier(0,0,.22,.79)'
-          }).finished;
+      // async function xx() {
+      //   while (1) {
+      //     /* eslint-disable no-await-in-loop */
+      //     await robotMotion();
+      //     /* eslint-enable no-await-in-loop */
+      //   }
+      // }
+      // xx();
+      if (this.isSuccess) {
+        robotMotion();
+        let hasHit = false;
+        robot.on('update', () => {
+          // 能量条
+          // let nowH = deltaH - (e.target.attr('y') - minH);
+          let nowH = deltaH - (robot.attr('y') - minH);
+          this.barPercent = (nowH / deltaH) * 100 + '%';
+          // 碰撞检测
+          if (!hasHit && robot.OBBCollision(star)) {
+            hasHit = true;
+            star.animate([{ y: oneData[2][1] - 100, opacity: 0 }], {
+              duration: 1000,
+              fill: 'forwards',
+              easing: 'ease-out'
+            });
+            // this.layer.timeline.playbackRate = -1;
+            // robot.animate([{ offsetDistance: 0 }, { offsetDistance: 1 }], {
+            //   // playbackRate: -1,
+            //   duration: 1000
+            //   // fill: 'forwards',
+            //   // direction: 'reverse'
+            // });
+          }
+        });
+        async function robotMotion() {
+          // for (let i = 0; i < 2; i++) {
+          for (let i = 0; i < pathData.length; i++) {
+            // if (hasHit) return;
+            robot.attr({
+              // anchor: [0.5, 1],
+              offsetPath: pathData[i]
+              // scale: 0.1
+            });
+            await robot.animate(
+              [{ offsetDistance: 0 }, { offsetDistance: 1 }],
+              {
+                // playbackRate: 1,
+                duration: 3000,
+                fill: 'forwards',
+                easing:
+                  i % 2 === 0
+                    ? 'cubic-bezier(.45,.14,.92,.76)'
+                    : 'cubic-bezier(.09,.24,.58,.9)'
+                // easing:
+                //   i % 2 === 0
+                //     ? 'cubic-bezier(.4,.1,1,1)'
+                //     : 'cubic-bezier(0,0,.55,.85)'
+                // easing: i % 2 === 0 ? 'ease-in' : 'cubic-bezier(0,0,.22,.79)'
+              }
+            ).finished;
+          }
+        }
+      } else {
+        robotMotionFail();
+        async function robotMotionFail() {
+          for (let i = 0; i < pathData.length; i++) {
+            console.log(i);
+            if (i > 1) return;
+            robot.attr({
+              // anchor: [0.5, 1],
+              offsetPath: pathData[i]
+              // scale: 0.1
+            });
+            if (i === 1) {
+              await robot.animate(
+                [{ offsetDistance: 0 }, { offsetDistance: h1 / h2 }],
+                {
+                  duration: 1000,
+                  fill: 'forwards',
+                  easing: 'ease-out'
+                }
+              ).finished;
+              await robot.animate(
+                [{ offsetDistance: h1 / h2 }, { offsetDistance: 0 }],
+                {
+                  duration: 1000,
+                  fill: 'forwards',
+                  easing: 'ease-in'
+                }
+              ).finished;
+              // this.$emit('todo')
+            } else {
+              await robot.animate(
+                [{ offsetDistance: 0 }, { offsetDistance: 1 }],
+                {
+                  duration: 3000,
+                  fill: 'forwards',
+                  easing:
+                    i % 2 === 0
+                      ? 'cubic-bezier(.45,.14,.92,.76)'
+                      : 'cubic-bezier(.09,.24,.58,.9)'
+                }
+              ).finished;
+            }
+          }
         }
       }
+    },
+    pause() {
+      this.layer.timeline.playbackRate = 0;
+    },
+    goon() {
+      this.layer.timeline.playbackRate = 1;
     },
     createOnePath(pathArr) {
       let pathData = [];
@@ -250,6 +407,9 @@ export default {
 .text {
   font-size: 20px;
 }
+.btn {
+  margin-bottom: 20px;
+}
 .mask {
   position: fixed;
   top: 0;
@@ -261,7 +421,9 @@ export default {
 }
 #hh {
   width: 100%;
-  padding-bottom: 26%;
+  /* width: 1400px; */
+  /* height: 300px; */
+  padding-bottom: 50%;
   border: 2px solid #000;
 }
 .bar {
