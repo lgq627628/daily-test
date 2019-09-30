@@ -71,9 +71,9 @@ export default {
         '哟吼，还真验收呐'
       ],
       maxScore: 0,
-      gainSound: new Audio('/static/starTrue.mp3'),
-      loseSound: new Audio('/static/starFalse.mp3'),
-      failSound: new Audio('/static/fail.mp3')
+      gainSound: new Audio('@/../static/starTrue.mp3'),
+      loseSound: new Audio('@/../static/starFalse.mp3'),
+      failSound: new Audio('@/../static/fail.mp3')
     };
   },
   mounted() {
@@ -86,6 +86,7 @@ export default {
       this.nowEle = element[1];
     },
     restart() {
+      snake.removeAllBody();
       this.pause();
       this.resultVisible = false;
       this.score = 0;
