@@ -2,6 +2,7 @@
 import Vue from 'vue';
 import App from './App.vue';
 import router from './router';
+import fabric from 'fabric';
 import katex from 'katex';
 import Toast from './components/toast/main.js';
 // import Phy from './components/phy';

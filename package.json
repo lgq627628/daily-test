@@ -10,7 +10,9 @@
   "dependencies": {
     "core-js": "^2.6.5",
     "createjs": "^1.0.1",
+    "fabric": "^3.4.0",
     "katex": "^0.10.2",
+    "matter-js": "^0.14.2",
     "p2": "^0.7.1",
     "pixi.js": "^5.1.1",
     "spritejs": "^2.29.5",

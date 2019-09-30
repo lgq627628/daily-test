@@ -12,7 +12,8 @@
       <button @click="execCommand('insertHorizontalRule')">水平线</button>
       <button @click="createLink">链接</button>
       <button @click="insertImgLink">图片链接</button>
-      <button class="nav__img">插入图片
+      <button class="nav__img">
+        插入图片
         <input type="file" accept="image/gif, image/jpeg, image/png" @change="insertImg">
       </button>
       <button @click="execCommand('undo')">后退一步</button>
@@ -304,6 +305,7 @@ export default {
   }
 }
 .editor {
+  display: inline-flex;
   position: relative;
   padding: 10px;
   width: 500px;
@@ -321,6 +323,7 @@ export default {
   }
 }
 .content {
+  display: inline-flex;
   width: 500px;
   height: 400px;
   border: 1px solid #000;
