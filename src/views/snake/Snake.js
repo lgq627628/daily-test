@@ -42,10 +42,11 @@ class Snake {
         item.div.style.position = this.position;
         item.div.style.left = item.x * this.width + 'px';
         item.div.style.top = item.y * this.height + 'px';
-        item.div.style.zIndex = 1;
+        item.div.style.zIndex = 3;
         if (index === 0) {
           item.div.style.background = `url('~@/../static/head.jpg') no-repeat`;
           item.div.style.backgroundSize = 'cover';
+          item.div.style.zIndex = 4;
         } else {
           item.div.style.backgroundColor = item.color;
         }

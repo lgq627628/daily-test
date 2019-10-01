@@ -34,6 +34,8 @@ class Food {
         food.div.style.position = this.position
         food.div.style.left = food.x * this.width + 'px'
         food.div.style.top = food.y * this.height + 'px'
+        food.div.style.zIndex = food.color === 'green' ? 2 : 1;
+
         this.map._map.appendChild(food.div)
       }
     })

@@ -83,11 +83,13 @@ export default {
   },
   methods: {
     ready() {
-      this.nowEle = element[1];
+      this.nowEle = element[~~(Math.random() * 10)];
     },
     restart() {
-      snake.removeAllBody();
       this.pause();
+      snake.removeAllBody();
+      food.removeAllFood();
+      this.nowEle = element[~~(Math.random() * 10)];
       this.resultVisible = false;
       this.score = 0;
       this.chance = 5;
