@@ -1,6 +1,11 @@
 <template>
   <div id="app">
-    <xr-table :columns="columns" :data="data" @on-selection-change="onSelectionChange"></xr-table>
+    <xr-table
+      :columns="columns"
+      :data="data"
+      @on-selection-change="onSelectionChange"
+      @on-sort="onSort"
+    ></xr-table>
   </div>
 </template>
 
@@ -25,7 +30,8 @@ export default {
         },
         {
           title: '年龄',
-          key: 'age'
+          key: 'age',
+          sortable: true
         },
         {
           title: '职位',
@@ -73,6 +79,9 @@ export default {
   },
   methods: {
     onSelectionChange(val) {
+      console.log(val);
+    },
+    onSort(val) {
       console.log(val);
     }
   }

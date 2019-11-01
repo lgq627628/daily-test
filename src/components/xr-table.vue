@@ -8,7 +8,13 @@
               <template v-if="col.type === 'selection'">
                 <input ref="allCheckbox" type="checkbox" :checked="isSelectAll" @change="selectAll">
               </template>
-              <template v-else>{{col.title}}</template>
+              <template v-else>
+                <span>{{col.title}}</span>
+                <span v-if="col.sortable">
+                  <i @click="handleSort(col.key, 'asc')">↑</i>
+                  <i @click="handleSort(col.key, 'desc')">↓</i>
+                </span>
+              </template>
             </div>
           </th>
         </tr>
@@ -98,6 +104,9 @@ export default {
     },
     formateStatus(row) {
       return this.selectedRows.findIndex(item => item.id === row.id) >= 0;
+    },
+    handleSort(key, sortType) {
+      this.$emit('on-sort', { key, sortType });
     }
   }
 };
