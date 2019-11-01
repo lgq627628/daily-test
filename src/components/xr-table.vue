@@ -8,6 +8,7 @@
               <template v-if="col.type === 'selection'">
                 <input ref="allCheckbox" type="checkbox" :checked="isSelectAll" @change="selectAll">
               </template>
+              <template v-else-if="col.type === 'expand'"></template>
               <template v-else>
                 <span>{{col.title}}</span>
                 <span v-if="col.sortable">
@@ -20,20 +21,30 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="row in data" :key="row.id">
-          <td v-for="col in columns" :key="col.key">
-            <div>
-              <template v-if="col.type === 'selection'">
-                <input
-                  type="checkbox"
-                  :checked="formateStatus(row)"
-                  @change="toggleSelect($event, row)"
-                >
-              </template>
-              <template v-else>{{row[col.key]}}</template>
-            </div>
-          </td>
-        </tr>
+        <template v-for="row in data">
+          <tr :key="row.id">
+            <td v-for="col in columns" :key="col.key">
+              <div>
+                <template v-if="col.type === 'selection'">
+                  <input
+                    type="checkbox"
+                    :checked="formateStatus(row)"
+                    @change="toggleSelect($event, row)"
+                  >
+                </template>
+                <template v-if="col.type === 'expand'">
+                  <span @click="toggleExpand(row.id)">></span>
+                </template>
+                <template v-else>
+                  <span>{{row[col.key]}}</span>
+                </template>
+              </div>
+            </td>
+          </tr>
+          <tr :key="`expand-${row.id}`" v-if="checkIsExpand(row.id)">
+            <td :colspan="columns.length">{{row.desc}}</td>
+          </tr>
+        </template>
       </tbody>
     </table>
   </div>
@@ -54,7 +65,8 @@ export default {
   },
   data() {
     return {
-      selectedRows: []
+      selectedRows: [],
+      expandIds: []
     };
   },
   created() {
@@ -107,6 +119,17 @@ export default {
     },
     handleSort(key, sortType) {
       this.$emit('on-sort', { key, sortType });
+    },
+    toggleExpand(id) {
+      let idx = this.expandIds.indexOf(id);
+      if (idx >= 0) {
+        this.expandIds.splice(idx, 1);
+      } else {
+        this.expandIds.push(id);
+      }
+    },
+    checkIsExpand(id) {
+      return this.expandIds.indexOf(id) >= 0;
     }
   }
 };

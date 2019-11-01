@@ -21,6 +21,10 @@ export default {
     return {
       columns: [
         {
+          type: 'expand',
+          width: 60
+        },
+        {
           type: 'selection',
           width: 60
         },
@@ -44,35 +48,35 @@ export default {
           name: 'Jasmine',
           age: 18,
           job: '产品',
-          date: '2016-10-03'
+          desc: '这是展开的描述啊1'
         },
         {
           id: 2,
           name: 'Mango',
           age: 18,
           job: '设计',
-          date: '2016-10-03'
+          desc: '这是展开的描述啊2'
         },
         {
           id: 3,
           name: 'Aking',
           age: 24,
           job: '前端',
-          date: '2016-10-01'
+          desc: '这是展开的描述啊3'
         },
         {
           id: 4,
           name: 'Dick',
           age: 30,
           job: '后端',
-          date: '2016-10-02'
+          desc: '这是展开的描述啊4'
         },
         {
           id: 5,
           name: 'Lucy',
           age: 18,
           job: '测试',
-          date: '2016-10-04'
+          desc: '这是展开的描述啊5'
         }
       ]
     };
