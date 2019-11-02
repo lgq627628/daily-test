@@ -21,18 +21,21 @@
         </tr>
       </thead>
       <tbody>
-        <template v-for="row in data">
+        <template v-for="(row, index) in data">
           <tr :key="row.id">
             <td v-for="col in columns" :key="col.key">
               <div>
-                <template v-if="col.type === 'selection'">
+                <template v-if="col.slot">
+                  <slot :name="col.slot" :row="row" :col="col" :index="index"></slot>
+                </template>
+                <template v-else-if="col.type === 'selection'">
                   <input
                     type="checkbox"
                     :checked="formateStatus(row)"
                     @change="toggleSelect($event, row)"
                   >
                 </template>
-                <template v-if="col.type === 'expand'">
+                <template v-else-if="col.type === 'expand'">
                   <span @click="toggleExpand(row.id)">></span>
                 </template>
                 <template v-else>

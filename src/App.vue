@@ -5,7 +5,13 @@
       :data="data"
       @on-selection-change="onSelectionChange"
       @on-sort="onSort"
-    ></xr-table>
+    >
+      <template #age="{row, col, index}">{{ row.age + '岁'}}</template>
+      <template #action="{row, col, index}">
+        <button>编辑{{index}}</button>
+        <button>删除</button>
+      </template>
+    </xr-table>
   </div>
 </template>
 
@@ -35,11 +41,17 @@ export default {
         {
           title: '年龄',
           key: 'age',
+          slot: 'age',
           sortable: true
         },
         {
           title: '职位',
           key: 'job'
+        },
+        {
+          title: '操作',
+          key: 'action',
+          slot: 'action'
         }
       ],
       data: [
