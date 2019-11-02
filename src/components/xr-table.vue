@@ -1,55 +1,72 @@
 <template>
-  <div class="xr-table">
-    <table>
-      <thead>
-        <tr>
-          <th v-for="col in columns" :key="col.key">
-            <div>
-              <template v-if="col.type === 'selection'">
-                <input ref="allCheckbox" type="checkbox" :checked="isSelectAll" @change="selectAll">
-              </template>
-              <template v-else-if="col.type === 'expand'"></template>
-              <template v-else>
-                <span>{{col.title}}</span>
-                <span v-if="col.sortable">
-                  <i @click="handleSort(col.key, 'asc')">↑</i>
-                  <i @click="handleSort(col.key, 'desc')">↓</i>
-                </span>
-              </template>
-            </div>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <template v-for="(row, index) in data">
-          <tr :key="row.id">
-            <td v-for="col in columns" :key="col.key">
+  <div class="xr-table" :style="tableStyle">
+    <div class="xr-table__header" ref="tableHeader">
+      <table>
+        <colgroup>
+          <col v-for="col in columns" :width="col.width || ''">
+        </colgroup>
+        <thead>
+          <tr>
+            <th v-for="col in columns" :key="col.key">
               <div>
-                <template v-if="col.slot">
-                  <slot :name="col.slot" :row="row" :col="col" :index="index"></slot>
-                </template>
-                <template v-else-if="col.type === 'selection'">
+                <template v-if="col.type === 'selection'">
                   <input
+                    ref="allCheckbox"
                     type="checkbox"
-                    :checked="formateStatus(row)"
-                    @change="toggleSelect($event, row)"
+                    :checked="isSelectAll"
+                    @change="selectAll"
                   >
                 </template>
-                <template v-else-if="col.type === 'expand'">
-                  <span @click="toggleExpand(row.id)">></span>
-                </template>
+                <template v-else-if="col.type === 'expand'"></template>
                 <template v-else>
-                  <span>{{row[col.key]}}</span>
+                  <span>{{col.title}}</span>
+                  <span v-if="col.sortable">
+                    <i @click="handleSort(col.key, 'asc')">↑</i>
+                    <i @click="handleSort(col.key, 'desc')">↓</i>
+                  </span>
                 </template>
               </div>
-            </td>
+            </th>
           </tr>
-          <tr :key="`expand-${row.id}`" v-if="checkIsExpand(row.id)">
-            <td :colspan="columns.length">{{row.desc}}</td>
-          </tr>
-        </template>
-      </tbody>
-    </table>
+        </thead>
+      </table>
+    </div>
+    <div class="xr-table__body" ref="tableBody">
+      <table>
+        <colgroup>
+          <col v-for="col in columns" :width="col.width || ''">
+        </colgroup>
+        <tbody>
+          <template v-for="(row, index) in data">
+            <tr :key="row.id">
+              <td v-for="col in columns" :key="col.key">
+                <div>
+                  <template v-if="col.slot">
+                    <slot :name="col.slot" :row="row" :col="col" :index="index"></slot>
+                  </template>
+                  <template v-else-if="col.type === 'selection'">
+                    <input
+                      type="checkbox"
+                      :checked="formateStatus(row)"
+                      @change="toggleSelect($event, row)"
+                    >
+                  </template>
+                  <template v-else-if="col.type === 'expand'">
+                    <span @click="toggleExpand(row.id)">></span>
+                  </template>
+                  <template v-else>
+                    <span>{{row[col.key]}}</span>
+                  </template>
+                </div>
+              </td>
+            </tr>
+            <tr :key="`expand-${row.id}`" v-if="checkIsExpand(row.id)">
+              <td :colspan="columns.length">{{row.desc}}</td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -64,6 +81,10 @@ export default {
     data: {
       type: Array,
       default: () => []
+    },
+    height: {
+      type: [String, Number],
+      default: -1
     }
   },
   data() {
@@ -75,7 +96,16 @@ export default {
   created() {
     window.vm = this;
   },
+  mounted() {
+    let { tableHeader, tableBody } = this.$refs;
+    let headerH = parseInt(window.getComputedStyle(tableHeader).height);
+    let bodyH = this.height - headerH;
+    tableBody.style.height = `${bodyH}px`;
+  },
   computed: {
+    tableStyle() {
+      return this.height ? `height: ${this.height}px` : '';
+    },
     isSelectAll() {
       let all = this.data.map(item => item.id).sort();
       let selected = this.selectedRows.map(item => item.id).sort();
@@ -140,6 +170,7 @@ export default {
 
 <style lang="scss">
 .xr-table {
+  overflow: hidden;
   table {
     width: 100%;
     border-collapse: collapse;
@@ -158,6 +189,9 @@ export default {
     padding: 8px 16px;
     border: 1px solid #e9e9e9;
     text-align: left;
+  }
+  &__body {
+    overflow: auto;
   }
 }
 </style>

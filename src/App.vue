@@ -5,6 +5,7 @@
       :data="data"
       @on-selection-change="onSelectionChange"
       @on-sort="onSort"
+      height="150"
     >
       <template #age="{row, col, index}">{{ row.age + '岁'}}</template>
       <template #action="{row, col, index}">
@@ -36,13 +37,15 @@ export default {
         },
         {
           title: '姓名',
-          key: 'name'
+          key: 'name',
+          width: 100
         },
         {
           title: '年龄',
           key: 'age',
           slot: 'age',
-          sortable: true
+          sortable: true,
+          width: 100
         },
         {
           title: '职位',
@@ -51,7 +54,8 @@ export default {
         {
           title: '操作',
           key: 'action',
-          slot: 'action'
+          slot: 'action',
+          width: 100
         }
       ],
       data: [
